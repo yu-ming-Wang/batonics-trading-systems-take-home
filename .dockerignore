@@ -1,0 +1,38 @@
+# ===== Git / editor =====
+.git
+.gitignore
+.vscode
+.idea
+
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+venv/
+
+# ===== Node / Frontend =====
+node_modules/
+frontend/node_modules/
+dist/
+build/
+
+# ===== Logs =====
+logs/
+*.log
+
+# ===== Local data / artifacts =====
+*.db
+*.sqlite
+*.csv~
+*.jsonl~
+
+# ===== Build outputs (local) =====
+/tcp_main_ws
+/streamer/streamer
+
+# ===== OS =====
+.DS_Store
+Thumbs.db

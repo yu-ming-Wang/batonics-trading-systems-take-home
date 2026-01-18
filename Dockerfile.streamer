@@ -1,0 +1,50 @@
+# ---------- build C++ streamer binary ----------
+    FROM ubuntu:22.04 AS build
+
+    RUN apt-get update && apt-get install -y \
+        build-essential \
+        pkg-config \
+        libboost-all-dev \
+        ca-certificates \
+     && rm -rf /var/lib/apt/lists/*
+    
+    WORKDIR /src
+    
+    # Copy streamer folder (Makefile + src/)
+    COPY streamer/ ./streamer/
+    
+    WORKDIR /src/streamer
+    RUN make -j
+    
+    # sanity check
+    RUN test -f /src/streamer/streamer
+    
+    # ---------- runtime: python control plane ----------
+    FROM python:3.11-slim AS runtime
+    
+    WORKDIR /app
+    
+    # Install python deps 
+    COPY streamer/requirements.txt /app/requirements.txt
+    RUN pip install --no-cache-dir -r /app/requirements.txt
+    
+    # Copy control script
+    COPY streamer/streamer_control.py /app/streamer_control.py
+    
+    # Copy compiled binary
+    COPY --from=build /src/streamer/streamer /app/streamer
+    RUN chmod +x /app/streamer
+    
+    # Default envs (compose/.env can override)
+    ENV STREAMER_BIN=/app/streamer
+    ENV CSV_PATH=/data/CLX5_mbo.csv
+    ENV STREAMER_PORT=9000
+    ENV DEFAULT_RATE=1000
+    ENV LOOP=0
+    
+    EXPOSE 7000 9000
+    
+    # Run control plane (assumes it starts HTTP server on :7000)
+    CMD ["uvicorn", "streamer_control:app", "--host", "0.0.0.0", "--port", "7000"]
+
+    

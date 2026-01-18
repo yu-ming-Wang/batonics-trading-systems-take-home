@@ -1,0 +1,23 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    libboost-all-dev \
+    libpq-dev \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY Makefile ./Makefile
+COPY mbo-stream ./mbo-stream
+COPY scripts/run_engine.sh ./run_engine.sh
+
+RUN chmod +x ./run_engine.sh
+
+# Build: produces /app/tcp_main_ws
+RUN make -j
+
+EXPOSE 8080
+CMD ["/app/run_engine.sh"]

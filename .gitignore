@@ -1,0 +1,88 @@
+################################
+# General / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+################################
+# Git / Editor
+################################
+.vscode/
+.idea/
+
+################################
+# Python
+################################
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+.env.*
+!.env.example
+
+
+################################
+# Node / Frontend
+################################
+node_modules/
+frontend/node_modules/
+dist/
+build/
+*.log
+
+################################
+# Logs / Runtime
+################################
+logs/
+*.log
+/tmp/
+*.pid
+
+################################
+# Database / Local data
+################################
+*.db
+*.sqlite
+*.sqlite3
+
+################################
+# Generated data (DO NOT COMMIT)
+################################
+*.jsonl
+*.csv~
+*.jsonl~
+
+# frontend runtime-generated feeds
+frontend/public/snapshots_feed.jsonl
+frontend/public/benchmarks.jsonl
+
+################################
+# Build artifacts (C++ binaries)
+################################
+tcp_main_ws
+streamer
+tools/bench/bench_apply
+
+################################
+# Docker (local only)
+################################
+.env.docker
+docker-compose.override.yml
+
+################################
+# Conda
+################################
+*.conda
+.envrc
+
+################################
+# Coverage / test output
+################################
+.coverage
+htmlcov/
+
+.env

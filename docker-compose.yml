@@ -1,0 +1,136 @@
+services:
+  # =========================
+  # Database
+  # =========================
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"   # optional: local debug
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  # =========================
+  # Streamer Control Plane
+  # =========================
+  streamer-control:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamer
+    environment:
+      STREAMER_BIN: /app/streamer
+      CSV_PATH: ${CSV_PATH}
+      STREAMER_PORT: "${STREAMER_TCP_PORT}"
+      DEFAULT_RATE: "${STREAMER_RATE}"
+      LOOP: "${STREAMER_LOOP}"
+    volumes:
+      - ./streamer/data:/data:ro
+      - shared:/shared
+    ports:
+      - "${STREAMER_CTRL_PORT}:7000"
+      - "${STREAMER_TCP_PORT}:9000"   # optional: local tcp debug
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:7000/health', timeout=1).read(); print('ok')\""
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # =========================
+  # Engine (C++ Order Book)
+  # =========================
+  engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.engine
+    depends_on:
+      db:
+        condition: service_healthy
+      streamer-control:
+        condition: service_healthy
+    environment:
+      FEED_HOST: ${FEED_HOST}
+      FEED_PORT: "${FEED_PORT}"
+      WS_PORT: "${WS_PORT}"
+
+      DEPTH: "${DEPTH}"
+      SNAPSHOT_EVERY: "${SNAPSHOT_EVERY}"
+      MAX_MSGS: "${MAX_MSGS}"
+      PUSH_MS: "${PUSH_MS}"
+
+      FEED_ENABLED: "${FEED_ENABLED}"
+      FEED_PATH: "${FEED_PATH}"
+      BENCH_LOG_PATH: "${BENCH_LOG_PATH}"
+
+      PG_CONNINFO: "${PG_CONNINFO}"
+    volumes:
+      - shared:/shared
+      - ./logs:/logs
+    ports:
+      - "${WS_PORT}:8080"
+
+  # =========================
+  # API Server
+  # =========================
+  api_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    depends_on:
+      db:
+        condition: service_healthy
+      streamer-control:
+        condition: service_healthy
+    environment:
+      PG_CONNINFO: "${PG_CONNINFO}"
+      STREAMER_CTRL_URL: "${STREAMER_CTRL_URL}"
+      FEED_PATH: "${FEED_PATH}"
+    volumes:
+      - shared:/shared:ro
+    ports:
+      - "${API_PORT}:8001"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=1).read(); print('ok')\""
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # =========================
+  # Frontend
+  # =========================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    depends_on:
+      api_server:
+        condition: service_healthy
+      engine:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT}:80"
+    volumes:
+      - shared:/usr/share/nginx/html/shared:ro
+
+# =========================
+# Volumes
+# =========================
+volumes:
+  pgdata:
+  shared:
