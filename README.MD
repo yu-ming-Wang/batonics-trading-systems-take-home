@@ -51,7 +51,7 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-4. Verify all 5 containers are running:
+5. Verify all 5 containers are running:
 ```bash
 docker compose ps
 ```
@@ -65,7 +65,7 @@ Expected output:
 ✔ Container batonic-frontend-1          Started
 ```
 
-5. Access the application:
+6. Access the application:
 - **Frontend**: http://localhost:3000
 
 **Additional endpoints** (for debugging/testing):
