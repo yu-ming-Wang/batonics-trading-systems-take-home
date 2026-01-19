@@ -64,7 +64,7 @@ frontend/public/benchmarks.jsonl
 # Build artifacts (C++ binaries)
 ################################
 tcp_main_ws
-streamer
+/streamer/streamer
 tools/bench/bench_apply
 
 ################################
