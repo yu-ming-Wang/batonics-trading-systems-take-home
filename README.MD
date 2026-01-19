@@ -37,7 +37,9 @@
 
 2. Open Docker Desktop (if using) or ensure Docker daemon is running
 
-3. Build and start all services:
+3. Make sure you are in Linux enviroment
+
+4. Build and start all services:
 
 For convenience, an example configuration is provided:
 
