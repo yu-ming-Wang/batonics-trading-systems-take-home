@@ -1166,3 +1166,6 @@ ws.onclose = () => {
 - Docker container orchestration validated with health checks
 - WebSocket concurrency tested with multiple simultaneous clients
 
+## Branch Workflow
+main = production
+develop = staging
